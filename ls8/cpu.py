@@ -12,7 +12,7 @@ class CPU:
         self.ram = [0] * 256
         self.pc = 0
         self.instructions = {"HLT": 0b00000001,
-                             "LDI": 0b10000010, "PRN": 0b01000111}
+                             "LDI": 0b10000010, "PRN": 0b01000111, "MLT": 0b10100010}
         self.halted = False
 
     def ram_read(self, address):
@@ -37,19 +37,17 @@ class CPU:
 
                 v = int(string_val, 2)
 
-                memory[address] = v
+                self.ram[address] = v
 
                 address += 1
-
-        print(self.reg)
-        print(self.ram)
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
 
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
-        # elif op == "SUB": etc
+        elif op == "MLT":
+            self.reg[reg_a] *= self.reg[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -75,6 +73,10 @@ class CPU:
 
     def run(self):
         while not self.halted:
+
+            # print(self.reg)
+            # print(self.ram)
+
             if self.ram[self.pc] == self.instructions["HLT"]:
                 self.halted = True
                 break
@@ -88,3 +90,9 @@ class CPU:
                 self.pc += 1
                 print(f"{self.reg[self.ram[self.pc]]}")
                 self.pc += 1
+
+            if self.ram[self.pc] == self.instructions["MLT"]:
+                self.pc += 1
+                self.alu("MLT", self.ram[self.pc],
+                         self.ram[self.pc + 1])
+                self.pc += 2
