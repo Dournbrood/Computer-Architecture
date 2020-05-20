@@ -12,8 +12,11 @@ class CPU:
         self.ram = [0] * 256
         self.pc = 0
         self.instructions = {"HLT": 0b00000001,
-                             "LDI": 0b10000010, "PRN": 0b01000111, "MLT": 0b10100010}
+                             "LDI": 0b10000010, "PRN": 0b01000111, "MLT": 0b10100010, "PSH": 0b01000101, "POP": 0b01000110}
         self.halted = False
+        self.sp = 7
+
+        self.reg[self.sp] = 0xF4
 
     def ram_read(self, address):
         return self.ram[address]
@@ -95,4 +98,92 @@ class CPU:
                 self.pc += 1
                 self.alu("MLT", self.ram[self.pc],
                          self.ram[self.pc + 1])
+                self.pc += 2
+
+            if self.ram[self.pc] == self.instructions["PSH"]:
+                """ 
+                Stack
+                ----------
+                5 <---
+                4
+                3
+                2
+                1
+                ----------    
+                """
+                # Decrement the stack pointer by 1
+                self.reg[self.sp] -= 1
+
+                """ 
+                Stack
+                ----------
+                ? <---
+                5 
+                4
+                3
+                2
+                1
+                ----------    
+                """
+
+                # Get register number
+                reg_num = self.ram[self.pc + 1]
+
+                # Get value at that registry
+                val = self.reg[reg_num]
+
+                # The registry at `self.sp` points to the address in our `self.ram` that is the top of the stack. It defaults to 0xf4.
+                stack_top_addr = self.reg[self.sp]
+
+                # Change the value in the address that is the top of our stack to whatever value we grabbed from the registry earlier.
+                self.ram[stack_top_addr] = val
+
+                self.pc += 2
+
+            if self.ram[self.pc] == self.instructions["POP"]:
+
+                # When popping to registry 0, set the registry[0] value to the value at the top of the stack, and then remove it from the stack.
+
+                # Get register number
+                reg_num = self.ram[self.pc + 1]
+
+                # The registry at `self.sp` points to the address in our `self.ram` that is the top of the stack. It defaults to 0xf4.
+                stack_top_addr = self.reg[self.sp]
+
+                # Change the value at the specified registry to the value at the top of the stack.
+                self.reg[reg_num] = self.ram[stack_top_addr]
+
+                # Change the value in the address that is the top of our stack to 0.
+                self.ram[stack_top_addr] = 0
+
+                """ 
+                Stack
+                ----------
+                ...
+                6 <---
+                5 
+                4
+                3
+                2
+                1
+                ...
+                ----------    
+                """
+                # Increment the stack pointer by 1
+                self.reg[self.sp] += 1
+
+                """ 
+                Stack
+                ----------
+                ...
+                0 
+                5 <---
+                4
+                3
+                2
+                1
+                ...
+                ----------    
+                """
+
                 self.pc += 2
