@@ -95,41 +95,27 @@ class CPU:
 
     def run(self):
         while not self.halted:
-
-            # self.trace()
-
-            # print(f"self.pc: {self.pc}")
-
-            # print(self.reg)
-            # print(self.ram)
-            # print(self.ram[self.pc])
-
             if self.ram[self.pc] == self.instructions["HLT"]:
-                # print("HLT")
                 self.halted = True
                 break
 
             elif self.ram[self.pc] == self.instructions["LDI"]:
-                # print("LDI")
                 self.pc += 1
                 self.reg[self.ram[self.pc]] = self.ram[self.pc + 1]
                 self.pc += 2
 
             elif self.ram[self.pc] == self.instructions["PRN"]:
-                # print("PRN")
                 self.pc += 1
                 print(f"{self.reg[self.ram[self.pc]]}")
                 self.pc += 1
 
             elif self.ram[self.pc] == self.instructions["MLT"]:
-                # print("MLT")
                 self.pc += 1
                 self.alu("MLT", self.ram[self.pc],
                          self.ram[self.pc + 1])
                 self.pc += 2
 
             elif self.ram[self.pc] == self.instructions["PSH"]:
-                # print("PSH")
                 # Decrement the stack pointer by 1
                 self.reg[self.sp] -= 1
 
@@ -148,7 +134,6 @@ class CPU:
                 self.pc += 2
 
             elif self.ram[self.pc] == self.instructions["POP"]:
-                # print("POP")
                 # When popping to registry 0, set the registry[0] value to the value at the top of the stack, and then remove it from the stack.
 
                 # Get register number
@@ -169,14 +154,12 @@ class CPU:
                 self.pc += 2
 
             elif self.ram[self.pc] == self.instructions["ADD"]:
-                # print("ADD")
                 self.pc += 1
                 self.alu("ADD", self.ram[self.pc], self.ram[self.pc + 1])
 
                 self.pc += 2
 
             elif self.ram[self.pc] == self.instructions["CLL"]:
-                # print("CLL")
                 # Put our current `pc` or address in memory in the stack.
                 self.push()
 
@@ -189,7 +172,6 @@ class CPU:
                 # print(f"value at self.ram[self.pc]: {self.ram[self.pc]}")
 
             elif self.ram[self.pc] == self.instructions["RET"]:
-                # print("RET")
                 self.pc = self.pop()
 
                 self.pc += 2
