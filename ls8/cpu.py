@@ -11,9 +11,24 @@ class CPU:
         self.reg = [0] * 8
         self.ram = [0] * 256
         self.pc = 0
-        self.instructions = {"HLT": 0b00000001,
-                             "LDI": 0b10000010, "PRN": 0b01000111, "MLT": 0b10100010, "PSH": 0b01000101, "POP": 0b01000110, "CLL": 0b01010000, "RET": 0b00010001, "ADD": 0b10100000}
+        self.instructions = {
+            "HLT": 0b00000001,
+            "LDI": 0b10000010,
+            "PRN": 0b01000111,
+            "MLT": 0b10100010,
+            "PSH": 0b01000101,
+            "POP": 0b01000110,
+            "CLL": 0b01010000,
+            "RET": 0b00010001,
+            "ADD": 0b10100000,
+            "CMP": 0b10100111,
+            "JEQ": 0b01010101,
+            "JNE": 0b01010110,
+            "JMP": 0b01010100
+        }
         self.halted = False
+        self.equivalent = False
+
         self.sp = 7
 
         self.reg[self.sp] = 0xF4
@@ -95,6 +110,12 @@ class CPU:
 
     def run(self):
         while not self.halted:
+
+            # print(self.ram)
+            # print(self.pc, self.ram[self.pc])
+
+            # print(self.reg)
+
             if self.ram[self.pc] == self.instructions["HLT"]:
                 self.halted = True
                 break
@@ -183,3 +204,34 @@ class CPU:
 
                 # Increment the stack pointer by 1
                 self.reg[self.sp] += 1
+
+            elif self.ram[self.pc] == self.instructions["CMP"]:
+                self.equivalent = False
+                # Under normal circumstances, the CPU would branch processes if the next two bits in memory are exactly the same. This, however, is an emulation.
+                if self.reg[self.ram[self.pc + 1]] == self.reg[self.ram[self.pc + 2]]:
+                    # print(
+                    #     f"Equivalence found! {self.reg[self.ram[self.pc + 1]]} = {self.reg[self.ram[self.pc + 2]]}")
+                    self.equivalent = True
+
+                self.pc += 3
+
+            elif self.ram[self.pc] == self.instructions["JEQ"]:
+                if self.equivalent:
+                    self.pc = self.reg[self.ram[self.pc + 1]]
+                    self.equivalent = False
+                else:
+                    self.pc += 2
+                    self.equivalent = False
+
+            elif self.ram[self.pc] == self.instructions["JNE"]:
+                if self.equivalent == False:
+                    self.pc = self.reg[self.ram[self.pc + 1]]
+                else:
+                    self.pc += 2
+                    self.equivalent = False
+
+            elif self.ram[self.pc] == self.instructions["JMP"]:
+                self.pc = self.reg[self.ram[self.pc + 1]]
+
+            else:
+                print(f"Instruction {self.ram[self.pc]} not recognized!")
